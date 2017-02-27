@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">Vehicle Control</string>
+    <string name="plate">Plate: </string>
+    <string name="check">Check</string>
+    <string name="clear">Clear</string>
+    <string name="company">Company: </string>
+    <string name="ownershipcard">Owner Ship Card:</string>
+    <string name="maker">Maker: </string>
+    <string name="model">Model: </string>
+    <string name="year">Year: </string>
+
+    <string name="colour">Colour: </string>
+    <string name="category">Class: </string>
+    <string name="environmentalapproval">Environmental Approval: </string>
+    <string name="technicalinspection">Technical Inspection: </string>
+    <string name="emissioncertificate">Emission Certificate: </string>
+
+    <string name="insurance">Insurance Certificate: </string>
+    <string name="insuranceexpiry">Insurance Expiry: </string>
+
+    <string name="soat">SOAT Certificate: </string>
+    <string name="soatexpiry">SOAT Expiry: </string>
+
+    <string name="enabling">Enabling Certificate: </string>
+    <string name="enablingexpiry">Enabling Expiry: </string>
+
 </resources>
