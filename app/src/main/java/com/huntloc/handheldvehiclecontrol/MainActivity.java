@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("JSONException", je.toString());
         }
     }
-
+    //show date and image
     private void s(String p, TextView t, ImageView i) {
         Calendar monthAhead = Calendar.getInstance();
         monthAhead.add(Calendar.MONTH, 1);
@@ -249,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (ParseException pe) {
         }
     }
+    //show certificate and company, date and image
     private void s(JSONObject certificate, TextView t, ImageView i, TextView te){
         String text = "";
         if(!certificate.isNull("CertificateNumber")){
@@ -265,6 +266,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+    //clear textview and imageview
     private void c(TextView t, ImageView i) {
         t.setText("");
         i.setImageResource(0);
