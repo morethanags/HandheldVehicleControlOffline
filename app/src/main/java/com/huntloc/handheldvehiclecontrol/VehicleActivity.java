@@ -232,32 +232,7 @@ public class VehicleActivity extends AppCompatActivity {
         t.setText("");
         i.setImageResource(0);
     }
-    /*protected void clearVehicle() {
-        textView_Plate.setText("");
-        textView_OwnerShipCard.setText("");
-        textView_Maker.setText("");
-        textView_Model_Year.setText("");
-        textView_Colour.setText("");
-        textView_CategoryClass.setText("");
-        textView_EnvironmentalApproval.setText("");
-        imageView_EnvironmentalApproval.setImageResource(0);
-        textView_TechnicalInspection.setText("");
-        imageView_TechnicalInspection.setImageResource(0);
 
-        textView_Insurance.setText("");
-        textView_InsuranceExpiry.setText("");
-        imageView_Insurance.setImageResource(0);
-
-        textView_Soat.setText("");
-        textView_SoatExpiry.setText("");
-        imageView_Soat.setImageResource(0);
-
-        textView_Enabling.setText("");
-        textView_EnablingExpiry.setText("");
-        imageView_Enabling.setImageResource(0);
-
-        imageView_Photo.setImageResource(R.mipmap.ic_no_image);
-    }*/
     private class LogOperation extends
             AsyncTask<String, String, String> {
  HttpURLConnection urlConnection;
