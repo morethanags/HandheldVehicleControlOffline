@@ -23,5 +23,7 @@
 
     <string name="enabling">Enabling Certificate: </string>
     <string name="enablingexpiry">Enabling Expiry: </string>
+    <string name="button_Entrance_text">Entrada</string>
+    <string name="button_Exit_text">Salida</string>
 
 </resources>
