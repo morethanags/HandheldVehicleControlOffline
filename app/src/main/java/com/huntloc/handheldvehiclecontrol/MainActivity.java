@@ -36,6 +36,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -49,9 +50,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String VEHICLE_MESSAGE = "com.huntloc.handheldvehiclecontrol.VEHICLE";
     private static long back_pressed;
-    private EditText editText_Plate;
+    private static EditText editText_Plate;
     private Button button_Ckeck;
-    private NfcAdapter mNfcAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,25 +87,26 @@ public class MainActivity extends AppCompatActivity {
                             "Enter a vehicle plate i.e. ABC-123",
                             Toast.LENGTH_SHORT).show();
                 } else {
+
                     sendRequest();
                     hideKeyboard();
                 }
             }
         });
-
-        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        if (mNfcAdapter == null) {
-            Toast.makeText(this, "This device doesn't support NFC.",
-                    Toast.LENGTH_LONG).show();
-            finish();
-            return;
+        Log.d("MainActivity Intent", getIntent().getAction());
+        if(getIntent().getExtras()!=null && getIntent().getExtras().getString("plate")!= null){
+            editText_Plate.setText(getIntent().getExtras().getString("plate"));
+            sendRequest();
         }
-        if (!mNfcAdapter.isEnabled()) {
-            Toast.makeText(this, "Please enable NFC.", Toast.LENGTH_LONG)
-                    .show();
-        }
-        handleIntent(getIntent());
+    }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        Log.d("MainActivity Intent", intent.getAction());
+        if(intent.getExtras().getString("plate")!= null){
+            editText_Plate.setText(intent.getExtras().getString("plate"));
+            sendRequest();
+        }
     }
 
     private void hideKeyboard() {
@@ -130,106 +131,9 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra(VEHICLE_MESSAGE, response);
         intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
-
-    }
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setupForegroundDispatch(this, mNfcAdapter);
+        editText_Plate.setText("");
     }
 
-    @Override
-    protected void onPause() {
-        stopForegroundDispatch(this, mNfcAdapter);
-        super.onPause();
-    }
-
-    public void setupForegroundDispatch(final Activity activity, NfcAdapter adapter) {
-        final Intent intent = new Intent(activity.getApplicationContext(),
-                activity.getClass());
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        final PendingIntent pendingIntent = PendingIntent.getActivity(
-                activity.getApplicationContext(), 0, intent, 0);
-        IntentFilter[] filters = new IntentFilter[1];
-        String[][] techList = new String[][]{};
-        filters[0] = new IntentFilter();
-        filters[0].addCategory(Intent.CATEGORY_DEFAULT);
-
-         /*filters[0].addAction(NfcAdapter.ACTION_TECH_DISCOVERED);
-         String[][] techList = new String[][]{new String[]{NfcA.class.getName()}, new String[]{MifareClassic.class.getName()}, new String[]{NdefFormatable.class.getName()}};*/
-
-         /*filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
-         try {
-             filters[0].addDataType(MIME_TEXT_PLAIN);
-         } catch (IntentFilter.MalformedMimeTypeException e) {
-             throw new RuntimeException("Check your mime type.");
-         }*/
-
-        filters[0].addAction(NfcAdapter.ACTION_TAG_DISCOVERED);
-        adapter.enableForegroundDispatch(activity, pendingIntent, filters,
-                techList);
-    }
-    public void stopForegroundDispatch(final Activity activity, NfcAdapter adapter) {
-        adapter.disableForegroundDispatch(activity);
-    }
-    @Override
-    protected void onNewIntent(Intent intent) {
-        handleIntent(intent);
-    }
-    private void handleIntent(Intent intent) {
-        String action = intent.getAction();
-        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)) {
-
-            Parcelable parcelable = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            Tag tag = (Tag) parcelable;
-            byte[] id = tag.getId();
-            String code = getDec(id) + "";
-            Log.d("Internal Code", code);
-            editText_Plate.setText(code);
-        }
-
-           /* if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
-                NdefMessage ndefMessage = null;
-                Parcelable[] rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-                if ((rawMessages != null) && (rawMessages.length > 0)) {
-                    ndefMessage = (NdefMessage) rawMessages[0];
-                    String result = "";
-                    byte[] payload = ndefMessage.getRecords()[0].getPayload();
-                    String textEncoding = ((payload[0] & 0200) == 0) ? "UTF-8" : "UTF-16";
-                    int languageCodeLength = payload[0] & 0077;
-                    //String languageCode = new String(payload, 1, languageCodeLength, "US-ASCII");
-                    String text = new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1, textEncoding);
-                    Log.d("Internal Code", text);
-                    HandheldFragment handheldFragment = ((HandheldFragment) mSectionsPagerAdapter.getItem(0));
-                    if (handheldFragment != null) {
-                        handheldFragment.setCredentialId(text);
-                    }
-                }
-            }*/
-
-        /*if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
-            Parcelable parcelable = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            Tag tag = (Tag) parcelable;
-            byte[] id = tag.getId();
-            String code = getDec(id) + "";
-            Log.d("Internal Code", code);
-            HandheldFragment handheldFragment = ((HandheldFragment) mSectionsPagerAdapter.getItem(0));
-            if (handheldFragment != null) {
-                handheldFragment.setCredentialId(code);
-            }
-        }*/
-    }
-
-    private long getDec(byte[] bytes) {
-        long result = 0;
-        long factor = 1;
-        for (int i = 0; i < bytes.length; ++i) {
-            long value = bytes[i] & 0xffl;
-            result += value * factor;
-            factor *= 256l;
-        }
-        return result;
-    }
     @Override
     public void onBackPressed() {
         if (back_pressed + 2000 > System.currentTimeMillis())
@@ -242,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
 
     private class QueryVehicleTask extends AsyncTask<String, String, String> {
         HttpURLConnection urlConnection;
-
         @SuppressWarnings("unchecked")
         protected String doInBackground(String... args) {
             StringBuilder result = new StringBuilder();
@@ -276,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return result.toString();
         }
-
         protected void onPostExecute(String result) {
             try {
                 if (!result.equals("")) {
@@ -307,4 +209,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
 }

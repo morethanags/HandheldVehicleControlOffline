@@ -38,7 +38,7 @@ public class VehicleActivity extends AppCompatActivity {
     private TextView  textView_Insurance, textView_InsuranceExpiry, textView_Soat, textView_SoatExpiry, textView_Enabling, textView_EnablingExpiry;
     private ImageView imageView_Insurance, imageView_Soat, imageView_Enabling;
     SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
-    String GUID;
+    String GUID, PLATE;
     private Button button_Entrance, button_Exit;
     LogOperation logOperation = null;
     @Override
@@ -54,14 +54,14 @@ public class VehicleActivity extends AppCompatActivity {
         button_Entrance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendRequest(GUID, 1);
+                sendRequest(GUID, PLATE,1);
             }
         });
         button_Exit = (Button) view.findViewById(R.id.button_Exit);
         button_Exit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendRequest(GUID,0);
+                sendRequest(GUID,PLATE,0);
             }
         });
         textView_Plate = (TextView) view
@@ -115,11 +115,13 @@ public class VehicleActivity extends AppCompatActivity {
         displayVehicle(response);
 
     }
-    private void sendRequest(String GUID, int log){
+    private void sendRequest(String GUID, String plate, int log){
         String serverURL = getResources().getString(
                 R.string.service_url)
                 + "/VehicleLogService/"
                 + GUID
+                + "/"
+                + plate
                 + "/"
                 + log;
        logOperation.execute(serverURL);
@@ -130,7 +132,7 @@ public class VehicleActivity extends AppCompatActivity {
             JSONObject response = new JSONObject(result);
             Log.d("response", response.toString());
             GUID = response.optString("GUID");
-
+            PLATE = response.optString("Plate");
             textView_Plate.setText(response.optString("Plate"));
             textView_OwnerShipCard.setText(response.optString("OwnerShipCard"));
             textView_Maker.setText(response.optString("Make"));
