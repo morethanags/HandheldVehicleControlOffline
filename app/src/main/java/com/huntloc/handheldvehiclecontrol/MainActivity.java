@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                         && (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     if (editText_Plate.getText().toString().isEmpty()) {
                         Toast.makeText(MainActivity.this,
-                                "Enter a vehicle plate i.e. ABC-123",
+                                "Enter a vehicle plate i.e. ABC123",
                                 Toast.LENGTH_SHORT).show();
                     } else {
                         sendRequest();
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (editText_Plate.getText().toString().isEmpty()) {
                     Toast.makeText(MainActivity.this,
-                            "Enter a vehicle plate i.e. ABC-123",
+                            "Enter a vehicle plate i.e. ABC123",
                             Toast.LENGTH_SHORT).show();
                 } else {
 
@@ -115,23 +115,22 @@ public class MainActivity extends AppCompatActivity {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
-
     }
 
     private void sendRequest() {
         String serverURL = getResources().getString(R.string.service_url)
-                + "/VehicleService/ByPlate/" + editText_Plate.getText().toString();
+                + "/VehicleService/Retrieve/ByPlate/" + editText_Plate.getText().toString()+"/Rows";
         Log.d("URL vehicle", serverURL);
         new QueryVehicleTask().execute(serverURL);
     }
 
-    protected void displayVehicle(String response) {
+    protected void displayVehicle(String plate) {
         Intent intent = new Intent(this,
                 VehicleActivity.class);
-        intent.putExtra(VEHICLE_MESSAGE, response);
+        intent.putExtra(VEHICLE_MESSAGE, plate);
         intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         startActivity(intent);
-        editText_Plate.setText("");
+        //editText_Plate.setText("");
     }
 
     @Override
@@ -160,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                     result.append(line);
                 }
             } catch (Exception e) {
+                Log.d("Exception",e.getMessage());
                 MainActivity.this.runOnUiThread(new Runnable() {
                     public void run() {
                         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
@@ -180,8 +180,10 @@ public class MainActivity extends AppCompatActivity {
             return result.toString();
         }
         protected void onPostExecute(String result) {
+            Log.d("Result", result);
             try {
-                if (!result.equals("")) {
+                if (result!=null && !result.equals("")) {
+
                     JSONObject jsonResponse = new JSONObject(result);
                     String plate = jsonResponse.optString("Plate");
                     if (plate.equals("null")) {
@@ -201,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 });
                     } else {
-                        MainActivity.this.displayVehicle(result);
+                        MainActivity.this.displayVehicle(plate);
                     }
                 }
             } catch (Exception ex) {
