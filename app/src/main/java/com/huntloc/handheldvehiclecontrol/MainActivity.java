@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         Log.d("MainActivity Intent", getIntent().getAction());
+        //si viene de la notificacion...
         if(getIntent().getExtras()!=null && getIntent().getExtras().getString("plate")!= null){
             editText_Plate.setText(getIntent().getExtras().getString("plate"));
             sendRequest();

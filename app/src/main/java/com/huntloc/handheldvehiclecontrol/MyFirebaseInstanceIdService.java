@@ -26,17 +26,15 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
     public void onTokenRefresh() {
         // Get updated InstanceID token.
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-        Log.d("handheld", "Refreshed token: " + refreshedToken);
-            // TODO: Implement this method to send any registration to your app's servers.
+                    // TODO: Implement this method to send any registration to your app's servers.
         sendRegistrationToServer(refreshedToken);
     }
     private void sendRegistrationToServer(String refreshedToken){
         String serverURL = getResources().getString(
-                R.string.service_url)
-                + "/TabletService/";
+                R.string.service_url)+ "/TabletService/Create";
         RegistrationTask  registrationTask = new RegistrationTask();
         registrationTask.execute(serverURL, refreshedToken);
-        Log.d("Send for registration", serverURL);
+
     }
     private class RegistrationTask extends
             AsyncTask<String, String, String> {
@@ -57,7 +55,7 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
                 tablet.put("RegistrationToken", args[1]);
 
                 OutputStream out = urlConnection.getOutputStream();
-                Log.d("json token",tablet.toString());
+                Log.d("json token", tablet.toString());
                 out.write(tablet.toString().getBytes("UTF-8"));
 
                 out.close();
@@ -69,7 +67,7 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
                     result.append(line);
                 }
             } catch (Exception e) {
-                Log.d("Send exception", e.getMessage());
+                Log.d("Send exception", e.toString());
             } finally {
                 urlConnection.disconnect();
             }

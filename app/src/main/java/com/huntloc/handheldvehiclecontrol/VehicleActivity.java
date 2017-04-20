@@ -120,7 +120,7 @@ public class VehicleActivity extends AppCompatActivity {
         logOperation.execute(serverURL);
     }
 
-    protected void displayVehicle(String result) {
+    private void displayVehicle(String result) {
         try {
             JSONObject response = new JSONObject(result);
             Log.d("response", response.toString());
