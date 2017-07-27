@@ -95,20 +95,20 @@ public class MainActivity extends AppCompatActivity {
         });
         Log.d("MainActivity Intent", getIntent().getAction());
         //si viene de la notificacion...
-        if(getIntent().getExtras()!=null && getIntent().getExtras().getString("plate")!= null){
+        /*if(getIntent().getExtras()!=null && getIntent().getExtras().getString("plate")!= null){
             editText_Plate.setText(getIntent().getExtras().getString("plate"));
             sendRequest();
-        }
+        }*/
     }
 
-    @Override
+   /* @Override
     protected void onNewIntent(Intent intent) {
         Log.d("MainActivity Intent", intent.getAction());
         if(intent.getExtras().getString("plate")!= null){
             editText_Plate.setText(intent.getExtras().getString("plate"));
             sendRequest();
         }
-    }
+    }*/
 
     private void hideKeyboard() {
         View view = this.getCurrentFocus();
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendRequest() {
         String serverURL = getResources().getString(R.string.service_url)
-                + "/VehicleService/Retrieve/ByPlate/" + editText_Plate.getText().toString()+"/Rows";
+                + "/VehicleService/Retrieve/ByPlate/" + editText_Plate.getText().toString();
         Log.d("URL vehicle", serverURL);
         new QueryVehicleTask().execute(serverURL);
     }

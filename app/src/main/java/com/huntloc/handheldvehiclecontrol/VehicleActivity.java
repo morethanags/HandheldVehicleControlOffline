@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
@@ -32,17 +33,17 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class VehicleActivity extends AppCompatActivity {
-    private ImageView imageView_TechnicalInspection, imageView_EnvironmentalApproval,  imageView_Photo;
+    private ImageView imageView_TechnicalInspection, imageView_EnvironmentalApproval, imageView_SafetyApproval,imageView_Photo;
     private TextView textView_Plate, textView_Contractor, textView_Type,
             textView_Maker_Model_Year, textView_OwnerShipCard, textView_TechnicalInspection,
-             textView_EnvironmentalApproval;
+            textView_EnvironmentalApproval, textView_SafetyApproval;
     private TextView textView_InsuranceExpiry, textView_SoatExpiry;
     private ImageView imageView_Insurance, imageView_Soat;
     SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
     String GUID, PLATE;
     private Button button_Entrance, button_Exit;
     LogOperation logOperation = null;
-
+    private boolean  enabled = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
@@ -92,11 +93,15 @@ public class VehicleActivity extends AppCompatActivity {
         textView_SoatExpiry = (TextView) view
                 .findViewById(R.id.textView_SoatExpiry);
 
-
         textView_EnvironmentalApproval = (TextView) view
                 .findViewById(R.id.textView_EnvironmentalApproval);
         imageView_EnvironmentalApproval = (ImageView) view
                 .findViewById(R.id.imageView_EnvironmentalApproval);
+
+        textView_SafetyApproval = (TextView) view
+                .findViewById(R.id.textView_SafetyApproval);
+        imageView_SafetyApproval = (ImageView) view
+                .findViewById(R.id.imageView_SafetyApproval);
 
         imageView_Photo = (ImageView) view
                 .findViewById(R.id.imageView_Photo);
@@ -120,40 +125,77 @@ public class VehicleActivity extends AppCompatActivity {
         logOperation.execute(serverURL);
     }
 
+    private void displayTitle(String plate, String contractor) {
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle(plate);
+        actionBar.setSubtitle(contractor);
+    }
+
     private void displayVehicle(String result) {
         try {
             JSONObject response = new JSONObject(result);
             Log.d("response", response.toString());
             GUID = response.optString("GUID");
             PLATE = response.optString("Plate");
+
             textView_Plate.setText(response.optString("Plate"));
             textView_Contractor.setText(response.optString("Contractor"));
             JSONObject type = response.getJSONObject("Type");
-            textView_Type.setText(type.optString("Description"));
+            JSONObject category = type.getJSONObject("Category");
 
-            textView_Maker_Model_Year.setText(response.optString("Make")+" "+ response.optString("Model")+" "+response.optString("ManufacturingYear"));
-            textView_OwnerShipCard.setText(response.optString("OwnershipCard"));
+            textView_Type.setText(type.optString("Description"));
+            displayTitle(response.optString("Plate"), response.optString("Contractor"));
+            String make = response.isNull("Make") ? "" : response.optString("Make");
+            String model = response.isNull("Model") ? "" : response.optString("Model");
+            String year = response.isNull("ManufacturingYear") ? "" : response.optString("ManufacturingYear");
+            textView_Maker_Model_Year.setText(make + " " + model + " " + year);
+
+            String ownershipCard = response.isNull("OwnershipCard") ? "-" : response.optString("OwnershipCard");
+            textView_OwnerShipCard.setText(ownershipCard);
 
             if (!response.isNull("TechnicalInspectionDate")) {
                 s(response.optString("TechnicalInspectionDate"), textView_TechnicalInspection, imageView_TechnicalInspection);
             } else {
                 c(textView_TechnicalInspection, imageView_TechnicalInspection);
             }
-            s(response.getJSONObject("Insurance"),imageView_Insurance, textView_InsuranceExpiry);
-            s(response.getJSONObject("SOAT"),imageView_Soat, textView_SoatExpiry);
+            if (!response.isNull("Insurance")) {
+                s(response.getJSONObject("Insurance"), imageView_Insurance, textView_InsuranceExpiry);
+            } else {
+                c(textView_InsuranceExpiry, imageView_Insurance);
+            }
+
+            if (!response.isNull("SOAT")) {
+                s(response.getJSONObject("SOAT"), imageView_Soat, textView_SoatExpiry);
+            } else {
+                c(textView_SoatExpiry, imageView_Soat);
+            }
+
             JSONObject envapproval = response.getJSONObject("EmissionsCertificate");
-            if(envapproval.optBoolean("Validity")==true){
-                button_Entrance.setEnabled(true);button_Exit.setEnabled(true);
+            if (envapproval.optBoolean("Validity") == true) {
                 textView_EnvironmentalApproval.setText("VALID");
                 imageView_EnvironmentalApproval.setImageResource(R.mipmap.ic_verified);
                 imageView_EnvironmentalApproval.setColorFilter(ContextCompat.getColor(this, R.color.check));
-            }
-            else {
-                button_Entrance.setEnabled(false);button_Exit.setEnabled(false);
+            } else {
+                enabled = false;
                 textView_EnvironmentalApproval.setText("NOT VALID");
                 imageView_EnvironmentalApproval.setImageResource(R.mipmap.ic_error);
                 imageView_EnvironmentalApproval.setColorFilter(ContextCompat.getColor(this, R.color.error));
             }
+
+            JSONObject safetyapproval = response.getJSONObject("SafetyApproval");
+            if (safetyapproval.optBoolean("Validity") == true) {
+                textView_SafetyApproval.setText("VALID");
+                imageView_SafetyApproval.setImageResource(R.mipmap.ic_verified);
+                imageView_SafetyApproval.setColorFilter(ContextCompat.getColor(this, R.color.check));
+            }
+            else {
+                enabled = false;
+                textView_SafetyApproval.setText("NOT VALID");
+                imageView_SafetyApproval.setImageResource(R.mipmap.ic_error);
+                imageView_SafetyApproval.setColorFilter(ContextCompat.getColor(this, R.color.error));
+            }
+            button_Entrance.setEnabled(enabled);
+            button_Exit.setEnabled(enabled);
 
             if (!response.isNull("Photo")) {
                 byte[] byteArray;
@@ -190,6 +232,7 @@ public class VehicleActivity extends AppCompatActivity {
             if (c.getTime().before(Calendar.getInstance().getTime())) {
                 i.setImageResource(R.mipmap.ic_error);
                 i.setColorFilter(ContextCompat.getColor(this, R.color.error));
+                enabled = false;
             } else {
                 if (c.getTime().before(monthAhead.getTime())) {// a un mes
                     i.setImageResource(R.mipmap.ic_warning);
@@ -204,23 +247,23 @@ public class VehicleActivity extends AppCompatActivity {
     }
 
     //show certificate and company, date and image
-    private void s(JSONObject certificate, ImageView i, TextView te){
-
-        if (!certificate.isNull("Expiry")) {
+    private void s(JSONObject certificate, ImageView i, TextView te) {
+        if (certificate != null && !certificate.isNull("Expiry")) {
             s(certificate.optString("Expiry"), te, i);
         } else {
             c(te, i);
         }
-
     }
+
     //clear textview and imageview
     private void c(TextView t, ImageView i) {
-        t.setText("");
+        t.setText("-");
         i.setImageResource(0);
     }
 
     private class LogOperation extends AsyncTask<String, String, String> {
         HttpURLConnection urlConnection;
+
         @SuppressWarnings("unchecked")
         protected String doInBackground(String... args) {
             StringBuilder result = new StringBuilder();
@@ -271,8 +314,10 @@ public class VehicleActivity extends AppCompatActivity {
 
         }
     }
+
     private class QueryVehicleTask extends AsyncTask<String, String, String> {
         HttpURLConnection urlConnection;
+
         @SuppressWarnings("unchecked")
         protected String doInBackground(String... args) {
             StringBuilder result = new StringBuilder();
@@ -287,17 +332,18 @@ public class VehicleActivity extends AppCompatActivity {
                     result.append(line);
                 }
             } catch (Exception e) {
-                Log.d("Exception",e.getMessage());
+                Log.d("Exception", e.getMessage());
 
             } finally {
                 urlConnection.disconnect();
             }
             return result.toString();
         }
+
         protected void onPostExecute(String result) {
             Log.d("Result", result);
             try {
-                if (result!=null && !result.equals("")) {
+                if (result != null && !result.equals("")) {
                     VehicleActivity.this.displayVehicle(result);
                     //JSONObject jsonResponse = new JSONObject(result);
                 }
