@@ -34,13 +34,13 @@ import java.util.Date;
 
 public class VehicleActivity extends AppCompatActivity {
     private ImageView imageView_TechnicalInspection, imageView_EnvironmentalApproval, imageView_SafetyApproval,imageView_Photo;
-    private TextView textView_Plate, textView_Contractor, textView_Type,
-            textView_Maker_Model_Year, textView_OwnerShipCard, textView_TechnicalInspection,
+    private TextView textView_Plate, textView_Contractor, textView_Type,textView_Category, textView_Operator,
+            textView_Maker_Model_Year, textView_OwnershipCard, textView_TechnicalInspection,
             textView_EnvironmentalApproval, textView_SafetyApproval;
     private TextView textView_InsuranceExpiry, textView_SoatExpiry;
     private ImageView imageView_Insurance, imageView_Soat;
     SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
-    String GUID, PLATE;
+    String VEHICLEID, PLATE;
     private Button button_Entrance, button_Exit;
     LogOperation logOperation = null;
     private boolean  enabled = true;
@@ -57,14 +57,14 @@ public class VehicleActivity extends AppCompatActivity {
         button_Entrance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendLogRequest(GUID, PLATE, 1);
+                sendLogRequest(VEHICLEID, PLATE, 1);
             }
         });
         button_Exit = (Button) view.findViewById(R.id.button_Exit);
         button_Exit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendLogRequest(GUID, PLATE, 0);
+                sendLogRequest(VEHICLEID, PLATE, 0);
             }
         });
         textView_Plate = (TextView) view
@@ -73,10 +73,14 @@ public class VehicleActivity extends AppCompatActivity {
                 .findViewById(R.id.textView_Contractor);
         textView_Type = (TextView) view
                 .findViewById(R.id.textView_Type);
+        textView_Operator = (TextView) view
+                .findViewById(R.id.textView_Operator);
+        textView_Category = (TextView) view
+                .findViewById(R.id.textView_Category);
         textView_Maker_Model_Year = (TextView) view
                 .findViewById(R.id.textView_Maker_Model_Year);
-        textView_OwnerShipCard = (TextView) view
-                .findViewById(R.id.textView_OwnerShipCard);
+        textView_OwnershipCard = (TextView) view
+                .findViewById(R.id.textView_OwnershipCard);
         textView_TechnicalInspection = (TextView) view
                 .findViewById(R.id.textView_TechnicalInspection);
         imageView_TechnicalInspection = (ImageView) view
@@ -135,26 +139,30 @@ public class VehicleActivity extends AppCompatActivity {
         try {
             JSONObject response = new JSONObject(result);
             Log.d("response", response.toString());
-            GUID = response.optString("GUID");
+            VEHICLEID = response.optString("VehicleId");
             PLATE = response.optString("Plate");
 
             textView_Plate.setText(response.optString("Plate"));
             textView_Contractor.setText(response.optString("Contractor"));
-            JSONObject type = response.getJSONObject("Type");
-            JSONObject category = type.getJSONObject("Category");
+
+            JSONObject type = response.getJSONObject("VehicleType");
+            JSONObject category = type.getJSONObject("VehicleCategory");
 
             textView_Type.setText(type.optString("Description"));
+            textView_Category.setText(category.optString("Description"));
+            String operator = response.isNull("Operator") ? "" : response.optString("Operator");
+            textView_Operator.setText(operator);
             displayTitle(response.optString("Plate"), response.optString("Contractor"));
-            String make = response.isNull("Make") ? "" : response.optString("Make");
+            String make = response.isNull("Manufacturer") ? "" : response.optString("Manufacturer");
             String model = response.isNull("Model") ? "" : response.optString("Model");
             String year = response.isNull("ManufacturingYear") ? "" : response.optString("ManufacturingYear");
             textView_Maker_Model_Year.setText(make + " " + model + " " + year);
 
             String ownershipCard = response.isNull("OwnershipCard") ? "-" : response.optString("OwnershipCard");
-            textView_OwnerShipCard.setText(ownershipCard);
+            textView_OwnershipCard.setText(ownershipCard);
 
-            if (!response.isNull("TechnicalInspectionDate")) {
-                s(response.optString("TechnicalInspectionDate"), textView_TechnicalInspection, imageView_TechnicalInspection);
+            if (!response.isNull("TechnicalInspection")) {
+                s(response.getJSONObject("TechnicalInspection"), imageView_TechnicalInspection, textView_TechnicalInspection);
             } else {
                 c(textView_TechnicalInspection, imageView_TechnicalInspection);
             }

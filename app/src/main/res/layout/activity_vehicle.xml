@@ -103,6 +103,28 @@
                         android:layout_height="wrap_content"
                         android:layout_weight=".40"
                         android:gravity="left"
+                        android:text="@string/category"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/textView_Category"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight=".60"
+                        android:gravity="left"
+                        android:textSize="18sp" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingBottom="@dimen/activity_vertical_margin">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight=".40"
+                        android:gravity="left"
                         android:text="@string/type"
                         android:textSize="18sp" />
 
@@ -125,11 +147,33 @@
                         android:layout_height="wrap_content"
                         android:layout_weight=".40"
                         android:gravity="left"
+                        android:text="@string/operator"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/textView_Operator"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight=".60"
+                        android:gravity="left"
+                        android:textSize="18sp" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingBottom="@dimen/activity_vertical_margin">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight=".40"
+                        android:gravity="left"
                         android:text="@string/ownershipcard"
                         android:textSize="18sp" />
 
                     <TextView
-                        android:id="@+id/textView_OwnerShipCard"
+                        android:id="@+id/textView_OwnershipCard"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight=".60"
