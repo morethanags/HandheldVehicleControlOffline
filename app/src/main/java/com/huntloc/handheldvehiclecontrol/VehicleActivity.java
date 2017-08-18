@@ -33,16 +33,16 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class VehicleActivity extends AppCompatActivity {
+    SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
+    String VEHICLEID, PLATE;
+    LogOperation logOperation = null;
     private ImageView imageView_TechnicalInspection, imageView_EnvironmentalApproval, imageView_SafetyApproval,imageView_Photo;
     private TextView textView_Plate, textView_Contractor, textView_Type,textView_Category, textView_Operator,
             textView_Maker_Model_Year, textView_OwnershipCard, textView_TechnicalInspection,
             textView_EnvironmentalApproval, textView_SafetyApproval;
     private TextView textView_InsuranceExpiry, textView_SoatExpiry;
     private ImageView imageView_Insurance, imageView_Soat;
-    SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
-    String VEHICLEID, PLATE;
     private Button button_Entrance, button_Exit;
-    LogOperation logOperation = null;
     private boolean  enabled = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,7 +150,7 @@ public class VehicleActivity extends AppCompatActivity {
 
             textView_Type.setText(type.optString("Description"));
             textView_Category.setText(category.optString("Description"));
-            String operator = response.isNull("Operator") ? "" : response.optString("Operator");
+            String operator = response.isNull("Operator") ? "-" : response.optString("Operator");
             textView_Operator.setText(operator);
             displayTitle(response.optString("Plate"), response.optString("Contractor"));
             String make = response.isNull("Manufacturer") ? "" : response.optString("Manufacturer");
@@ -158,9 +158,16 @@ public class VehicleActivity extends AppCompatActivity {
             String year = response.isNull("ManufacturingYear") ? "" : response.optString("ManufacturingYear");
             textView_Maker_Model_Year.setText(make + " " + model + " " + year);
 
-            String ownershipCard = response.isNull("OwnershipCard") ? "-" : response.optString("OwnershipCard");
-            textView_OwnershipCard.setText(ownershipCard);
-
+            //String ownershipCard = response.isNull("OwnershipCard") ? "-" : response.optString("OwnershipCard");
+            //textView_OwnershipCard.setText(ownershipCard);
+            if(!response.isNull("OwnershipCard")){
+                JSONObject ownershipCard = response.getJSONObject("OwnershipCard");
+                String ownershipCardNumber = ownershipCard.isNull("OwnershipCardNumber") ? "-" : ownershipCard.optString("OwnershipCardNumber");
+                textView_OwnershipCard.setText(ownershipCardNumber);
+            }
+            else{
+                textView_OwnershipCard.setText("-");
+            }
             if (!response.isNull("TechnicalInspection")) {
                 s(response.getJSONObject("TechnicalInspection"), imageView_TechnicalInspection, textView_TechnicalInspection);
             } else {
@@ -232,10 +239,10 @@ public class VehicleActivity extends AppCompatActivity {
         monthAhead.set(Calendar.SECOND, 0);
         monthAhead.set(Calendar.HOUR_OF_DAY, 0);
         try {
-            Date TechnicalInspetionDate = format.parse(p);
-            t.setText(format1.format(TechnicalInspetionDate));
+            Date ExpirationDate = format.parse(p);
+            t.setText(format1.format(ExpirationDate));
             Calendar c = Calendar.getInstance();
-            c.setTime(TechnicalInspetionDate);
+            c.setTime(ExpirationDate);
             c.add(Calendar.DATE, 1);
             if (c.getTime().before(Calendar.getInstance().getTime())) {
                 i.setImageResource(R.mipmap.ic_error);
@@ -256,8 +263,8 @@ public class VehicleActivity extends AppCompatActivity {
 
     //show certificate and company, date and image
     private void s(JSONObject certificate, ImageView i, TextView te) {
-        if (certificate != null && !certificate.isNull("Expiry")) {
-            s(certificate.optString("Expiry"), te, i);
+        if (certificate != null && !certificate.isNull("ExpirationDate")) {
+            s(certificate.optString("ExpirationDate"), te, i);
         } else {
             c(te, i);
         }

@@ -184,7 +184,6 @@ public class MainActivity extends AppCompatActivity {
             Log.d("Result", result);
             try {
                 if (result!=null && !result.equals("")) {
-
                     JSONObject jsonResponse = new JSONObject(result);
                     String plate = jsonResponse.optString("Plate");
                     if (plate.equals("null")) {
