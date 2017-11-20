@@ -36,14 +36,14 @@ public class VehicleActivity extends AppCompatActivity {
     SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
     String VEHICLEID, PLATE;
     LogOperation logOperation = null;
-    private ImageView imageView_TechnicalInspection, imageView_EnvironmentalApproval, imageView_SafetyApproval,imageView_Photo;
-    private TextView textView_Plate, textView_Contractor, textView_Type,textView_Category, textView_Operator,
-            textView_Maker_Model_Year, textView_OwnershipCard, textView_TechnicalInspection,
+    private ImageView imageView_SecurityApproval, imageView_EnvironmentalApproval, imageView_SafetyApproval,imageView_Photo;
+    private TextView textView_Plate, textView_Contractor, textView_Type,textView_Category,
+            textView_Maker_Model_Year, textView_OwnershipCard, textView_SecurityApproval,
             textView_EnvironmentalApproval, textView_SafetyApproval;
     private TextView textView_InsuranceExpiry, textView_SoatExpiry;
     private ImageView imageView_Insurance, imageView_Soat;
     private Button button_Entrance, button_Exit;
-    private boolean  enabled = true;
+    private boolean enabled = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
@@ -73,18 +73,15 @@ public class VehicleActivity extends AppCompatActivity {
                 .findViewById(R.id.textView_Contractor);
         textView_Type = (TextView) view
                 .findViewById(R.id.textView_Type);
-        textView_Operator = (TextView) view
-                .findViewById(R.id.textView_Operator);
+
+
         textView_Category = (TextView) view
                 .findViewById(R.id.textView_Category);
         textView_Maker_Model_Year = (TextView) view
                 .findViewById(R.id.textView_Maker_Model_Year);
         textView_OwnershipCard = (TextView) view
                 .findViewById(R.id.textView_OwnershipCard);
-        textView_TechnicalInspection = (TextView) view
-                .findViewById(R.id.textView_TechnicalInspection);
-        imageView_TechnicalInspection = (ImageView) view
-                .findViewById(R.id.imageView_TechnicalInspection);
+
 
         imageView_Insurance = (ImageView) view
                 .findViewById(R.id.imageView_Insurance);
@@ -96,6 +93,11 @@ public class VehicleActivity extends AppCompatActivity {
                 .findViewById(R.id.imageView_Soat);
         textView_SoatExpiry = (TextView) view
                 .findViewById(R.id.textView_SoatExpiry);
+
+        textView_SecurityApproval = (TextView) view
+                .findViewById(R.id.textView_SecurityApproval);
+        imageView_SecurityApproval = (ImageView) view
+                .findViewById(R.id.imageView_SecurityApproval);
 
         textView_EnvironmentalApproval = (TextView) view
                 .findViewById(R.id.textView_EnvironmentalApproval);
@@ -151,7 +153,6 @@ public class VehicleActivity extends AppCompatActivity {
             textView_Type.setText(type.optString("Description"));
             textView_Category.setText(category.optString("Description"));
             String operator = response.isNull("Operator") ? "-" : response.optString("Operator");
-            textView_Operator.setText(operator);
             displayTitle(response.optString("Plate"), response.optString("Contractor"));
             String make = response.isNull("Manufacturer") ? "" : response.optString("Manufacturer");
             String model = response.isNull("Model") ? "" : response.optString("Model");
@@ -168,11 +169,13 @@ public class VehicleActivity extends AppCompatActivity {
             else{
                 textView_OwnershipCard.setText("-");
             }
-            if (!response.isNull("TechnicalInspection")) {
+
+            /*if (!response.isNull("TechnicalInspection")) {
                 s(response.getJSONObject("TechnicalInspection"), imageView_TechnicalInspection, textView_TechnicalInspection);
             } else {
                 c(textView_TechnicalInspection, imageView_TechnicalInspection);
-            }
+            }*/
+
             if (!response.isNull("Insurance")) {
                 s(response.getJSONObject("Insurance"), imageView_Insurance, textView_InsuranceExpiry);
             } else {
@@ -183,6 +186,18 @@ public class VehicleActivity extends AppCompatActivity {
                 s(response.getJSONObject("SOAT"), imageView_Soat, textView_SoatExpiry);
             } else {
                 c(textView_SoatExpiry, imageView_Soat);
+            }
+
+            JSONObject securityapproval = response.getJSONObject("SecurityApproval");
+            if (securityapproval.optBoolean("Validity") == true) {
+                textView_SecurityApproval.setText("VALID");
+                imageView_SecurityApproval.setImageResource(R.mipmap.ic_verified);
+                imageView_SecurityApproval.setColorFilter(ContextCompat.getColor(this, R.color.check));
+            } else {
+                enabled = false;
+                textView_SecurityApproval.setText("NOT VALID");
+                imageView_SecurityApproval.setImageResource(R.mipmap.ic_error);
+                imageView_SecurityApproval.setColorFilter(ContextCompat.getColor(this, R.color.error));
             }
 
             JSONObject envapproval = response.getJSONObject("EmissionsCertificate");

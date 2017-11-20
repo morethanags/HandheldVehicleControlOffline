@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">Vehicle Control</string>
-    <string name="plate">Plate: </string>
+    <string name="plate">Plate/Serial: </string>
     <string name="contractor">Contractor: </string>
     <string name="category">Category: </string>
     <string name="type">Type: </string>
-    <string name="operator">Operator: </string>
+    <!--<string name="operator">Operator: </string>-->
 
     <string name="check">Check</string>
     <string name="clear">Clear</string>
@@ -16,14 +16,16 @@
 
     <string name="colour">Colour: </string>
 
+    <string name="securitylapproval">Security Approval:</string>
     <string name="environmentalapproval">Environmental Approval:</string>
     <string name="safetyapproval">Safety Approval:</string>
+
     <string name="technicalinspection">Technical Inspection: </string>
-    <string name="emissioncertificate">Emission Certificate: </string>
+    <!--<string name="emissioncertificate">Emission Certificate: </string>-->
 
     <string name="insurances">Insurances</string>
-    <string name="vehicularinsurance">Vehicular Expiration:</string>
-    <string name="soat">SOAT Expiration:</string>
+    <string name="vehicularinsurance">Vehicular Insurance:</string>
+    <string name="soat">SOAT:</string>
 
     <string name="button_Entrance_text">Entrada</string>
     <string name="button_Exit_text">Salida</string>
