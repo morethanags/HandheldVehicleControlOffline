@@ -23,17 +23,17 @@
             android:layout_weight=".25"
             android:gravity="right"
             android:text="@string/plate"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <EditText
             android:id="@+id/editText_Plate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight=".25"
-            android:hint="ABC-123"
+            android:hint="ABC123"
             android:inputType="textNoSuggestions"
             android:text=""
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/button_Check"
@@ -42,7 +42,7 @@
             android:layout_height="55dp"
             android:layout_weight=".50"
             android:text="@string/check"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
 
 
@@ -62,7 +62,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/app_name"
-            android:textSize="110sp" />
+            android:textSize="80sp" />
 
     </LinearLayout>
 </LinearLayout>

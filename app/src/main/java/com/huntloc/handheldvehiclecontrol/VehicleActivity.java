@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -12,11 +13,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,8 +33,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class VehicleActivity extends AppCompatActivity {
     SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
@@ -43,6 +49,7 @@ public class VehicleActivity extends AppCompatActivity {
     private TextView textView_InsuranceExpiry, textView_SoatExpiry;
     private ImageView imageView_Insurance, imageView_Soat;
     private Button button_Entrance, button_Exit;
+    private Spinner destination;
     private boolean enabled = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,19 +111,22 @@ public class VehicleActivity extends AppCompatActivity {
         imageView_EnvironmentalApproval = (ImageView) view
                 .findViewById(R.id.imageView_EnvironmentalApproval);
 
-        textView_SafetyApproval = (TextView) view
+       /* textView_SafetyApproval = (TextView) view
                 .findViewById(R.id.textView_SafetyApproval);
         imageView_SafetyApproval = (ImageView) view
                 .findViewById(R.id.imageView_SafetyApproval);
-
+*/
         imageView_Photo = (ImageView) view
                 .findViewById(R.id.imageView_Photo);
 
+        destination = (Spinner) findViewById(R.id.spinner_destination);
         String serverURL = getResources().getString(R.string.service_url)
                 + "/VehicleService/Retrieve/ByPlate/" + response;
-        Log.d("URL vehicle", serverURL);
-        new QueryVehicleTask().execute(serverURL);
 
+        new QueryVehicleTask().execute(serverURL);
+        String serverURL1 = getResources().getString(R.string.service_url)
+                + "/VehicleLogService/Destinations";
+    new QueryDestinationsTask().execute(serverURL1);
     }
 
     private void sendLogRequest(String GUID, String plate, int log) {
@@ -128,6 +138,23 @@ public class VehicleActivity extends AppCompatActivity {
                 + plate
                 + "/"
                 + log;
+        if(log==0){
+            int d =  ((Destination) destination.getSelectedItem()).getId();
+            if(d!=0){
+                serverURL = getResources().getString(
+                        R.string.service_url)
+                        + "/VehicleLogService/"
+                        + GUID
+                        + "/"
+                        + plate
+                        + "/"
+                        + log+"/"
+                        +d;
+
+            }
+
+        }
+
         logOperation.execute(serverURL);
     }
 
@@ -212,7 +239,7 @@ public class VehicleActivity extends AppCompatActivity {
                 imageView_EnvironmentalApproval.setColorFilter(ContextCompat.getColor(this, R.color.error));
             }
 
-            JSONObject safetyapproval = response.getJSONObject("SafetyApproval");
+           /* JSONObject safetyapproval = response.getJSONObject("SafetyApproval");
             if (safetyapproval.optBoolean("Validity") == true) {
                 textView_SafetyApproval.setText("VALID");
                 imageView_SafetyApproval.setImageResource(R.mipmap.ic_verified);
@@ -223,7 +250,7 @@ public class VehicleActivity extends AppCompatActivity {
                 textView_SafetyApproval.setText("NOT VALID");
                 imageView_SafetyApproval.setImageResource(R.mipmap.ic_error);
                 imageView_SafetyApproval.setColorFilter(ContextCompat.getColor(this, R.color.error));
-            }
+            }*/
             button_Entrance.setEnabled(enabled);
             button_Exit.setEnabled(enabled);
 
@@ -289,6 +316,19 @@ public class VehicleActivity extends AppCompatActivity {
     private void c(TextView t, ImageView i) {
         t.setText("-");
         i.setImageResource(0);
+    }
+    private void showDestinations(JSONArray array){
+       List<Destination> list = new ArrayList<>();
+        try {
+            list.add(new Destination("DESTINO",0));
+            for (int i = 0; i < array.length(); i++) {
+                list.add(new Destination(array.getJSONObject(i).getString("Description"), array.getJSONObject(i).getInt("VehicleLogDestinationId")));
+            }
+        } catch (Exception e) {
+        }
+        ArrayAdapter<Destination> adapter = new ArrayAdapter<Destination>(getApplicationContext(), android.R.layout.simple_spinner_item, list);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ((Spinner) findViewById(R.id.spinner_destination)).setAdapter(adapter);
     }
 
     private class LogOperation extends AsyncTask<String, String, String> {
@@ -382,4 +422,75 @@ public class VehicleActivity extends AppCompatActivity {
             }
         }
     }
+    private class QueryDestinationsTask extends AsyncTask<String, String, String> {
+        HttpURLConnection urlConnection;
+
+        @SuppressWarnings("unchecked")
+        protected String doInBackground(String... args) {
+            String toReturn = "";
+            StringBuilder result = new StringBuilder();
+            try {
+
+                URL url = new URL(args[0]);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                int code = urlConnection.getResponseCode();
+                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    result.append(line);
+                }
+                toReturn = result.toString();
+            } catch (Exception e) {
+                Log.d("Exception", e.getMessage());
+            } finally {
+                urlConnection.disconnect();
+            }
+            return toReturn;
+        }
+
+        protected void onPostExecute(String result) {
+            try {
+                if (result != null && !result.equals("")) {
+                    JSONArray jsonResponse = new JSONArray(result);
+                    if (jsonResponse.length() > 0) {
+                        VehicleActivity.this.showDestinations(jsonResponse);
+                        return;
+                    }
+                }
+            } catch (Exception ex) {
+                Log.d("Exception", ex.getMessage());
+            }
+        }
+    }
+public class Destination{
+    private int id;
+    private String desc;
+
+    public Destination(String desc,int id) {
+        this.id = id;
+        this.desc = desc;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+    public String toString() {
+        return this.desc;
+    }
+}
+
 }
