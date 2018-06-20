@@ -32,7 +32,7 @@
             android:layout_weight=".25"
             android:hint="ABC123"
             android:inputType="textNoSuggestions"
-            android:text=""
+            android:text="A9V863"
             android:textSize="16sp" />
 
         <Button

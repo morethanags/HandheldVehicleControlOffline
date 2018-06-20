@@ -16,18 +16,21 @@
 
     <string name="colour">Colour: </string>
 
-    <string name="securitylapproval">Security Approval:</string>
-    <string name="environmentalapproval">Environmental Approval:</string>
-    <string name="safetyapproval">Safety Approval:</string>
+    <string name="securitylapproval">Security:</string>
+    <string name="environmentalapproval">Environmental:</string>
+    <string name="safetyapproval">Safety:</string>
 
     <string name="technicalinspection">Technical Inspection: </string>
     <!--<string name="emissioncertificate">Emission Certificate: </string>-->
 
     <string name="insurances">Insurances</string>
+    <string name="approvals">Approvals</string>
+
     <string name="vehicularinsurance">Insurance:</string>
     <string name="soat">SOAT:</string>
     <string name="destino">Destino:</string>
     <string name="button_Entrance_text">Entrada</string>
     <string name="button_Exit_text">Salida</string>
-
+    <string name="arrival">Arrival Date: </string>
+    <string name="days">Days at site: </string>
 </resources>

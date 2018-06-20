@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,8 +43,8 @@ public class VehicleActivity extends AppCompatActivity {
     SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
     String VEHICLEID, PLATE;
     LogOperation logOperation = null;
-    private ImageView imageView_SecurityApproval, imageView_EnvironmentalApproval, imageView_SafetyApproval,imageView_Photo;
-    private TextView textView_Plate, textView_Contractor, textView_Type,textView_Category,
+    private ImageView imageView_SecurityApproval, imageView_EnvironmentalApproval, imageView_SafetyApproval, imageView_Photo;
+    private TextView textView_Plate, textView_Contractor, textView_Type, textView_Category,
             textView_Maker_Model_Year, textView_OwnershipCard, textView_SecurityApproval,
             textView_EnvironmentalApproval, textView_SafetyApproval;
     private TextView textView_InsuranceExpiry, textView_SoatExpiry;
@@ -51,6 +52,9 @@ public class VehicleActivity extends AppCompatActivity {
     private Button button_Entrance, button_Exit;
     private Spinner destination;
     private boolean enabled = true;
+    private LinearLayout delivery;
+    private TextView textView_arrival, textView_days;
+    private ImageView  imageView_arrival;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
@@ -90,6 +94,13 @@ public class VehicleActivity extends AppCompatActivity {
                 .findViewById(R.id.textView_OwnershipCard);
 
 
+        textView_arrival = (TextView) view
+                .findViewById(R.id.textView_arrival);
+        imageView_arrival = (ImageView) view
+                .findViewById(R.id.imageView_arrival);
+        textView_days = (TextView) view
+                .findViewById(R.id.textView_days);
+
         imageView_Insurance = (ImageView) view
                 .findViewById(R.id.imageView_Insurance);
         textView_InsuranceExpiry = (TextView) view
@@ -120,13 +131,15 @@ public class VehicleActivity extends AppCompatActivity {
                 .findViewById(R.id.imageView_Photo);
 
         destination = (Spinner) findViewById(R.id.spinner_destination);
+
+        delivery = (LinearLayout) findViewById(R.id.delivery);
         String serverURL = getResources().getString(R.string.service_url)
                 + "/VehicleService/Retrieve/ByPlate/" + response;
-
+        Log.d("url", serverURL);
         new QueryVehicleTask().execute(serverURL);
         String serverURL1 = getResources().getString(R.string.service_url)
                 + "/VehicleLogService/Destinations";
-    new QueryDestinationsTask().execute(serverURL1);
+        new QueryDestinationsTask().execute(serverURL1);
     }
 
     private void sendLogRequest(String GUID, String plate, int log) {
@@ -138,9 +151,9 @@ public class VehicleActivity extends AppCompatActivity {
                 + plate
                 + "/"
                 + log;
-        if(log==0){
-            int d =  ((Destination) destination.getSelectedItem()).getId();
-            if(d!=0){
+        if (log == 0) {
+            int d = ((Destination) destination.getSelectedItem()).getId();
+            if (d != 0) {
                 serverURL = getResources().getString(
                         R.string.service_url)
                         + "/VehicleLogService/"
@@ -148,8 +161,8 @@ public class VehicleActivity extends AppCompatActivity {
                         + "/"
                         + plate
                         + "/"
-                        + log+"/"
-                        +d;
+                        + log + "/"
+                        + d;
 
             }
 
@@ -158,10 +171,12 @@ public class VehicleActivity extends AppCompatActivity {
         logOperation.execute(serverURL);
     }
 
-    private void displayTitle(String plate, String contractor) {
+    private void displayTitle(String plate, String type) {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle(plate);
-        actionBar.setSubtitle(contractor);
+        if (type != null) {
+            actionBar.setSubtitle(type);
+        }
     }
 
     private void displayVehicle(String result) {
@@ -171,6 +186,42 @@ public class VehicleActivity extends AppCompatActivity {
             VEHICLEID = response.optString("VehicleId");
             PLATE = response.optString("Plate");
 
+            JSONObject requestType = response.getJSONObject("VehicleRequestType");
+            displayTitle(response.optString("Plate"), requestType.optString("Description"));
+
+            if (requestType.optInt("VehicleRequestTypeId") == 0) {
+                delivery.setVisibility(View.VISIBLE);
+                String days = response.isNull("DaysOfPermanency") ? "" : response.optInt("DaysOfPermanency") + "";
+                textView_days.setText(days);
+                if (!response.isNull("ArrivalDate")) {
+                    Date d = format.parse(response.optString("ArrivalDate"));
+                    textView_arrival.setText(format1.format(d));
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(d);
+                    Log.d("arrival", c.getTime().toString());
+
+                    Calendar today = Calendar.getInstance();
+
+                    today.set(Calendar.HOUR, 0);
+                    today.set(Calendar.MINUTE, 0);
+                    today.set(Calendar.SECOND, 0);
+                    today.set(Calendar.MILLISECOND, 0);
+                    today.set(Calendar.HOUR_OF_DAY, 0);
+                    Log.d("today", today.getTime().toString());
+                    if (c.getTime().compareTo(today.getTime())==0) {Log.d("display","ok");
+                        imageView_arrival.setImageResource(R.mipmap.ic_verified);
+                        imageView_arrival.setColorFilter(ContextCompat.getColor(this, R.color.check));
+
+                    }
+                    else{
+                        Log.d("display","warn");
+                        imageView_arrival.setImageResource(R.mipmap.ic_warning);
+                        imageView_arrival.setColorFilter(ContextCompat.getColor(this, R.color.warning));
+                    }
+                }
+            } else {
+                delivery.setVisibility(View.GONE);
+            }
             textView_Plate.setText(response.optString("Plate"));
             textView_Contractor.setText(response.optString("Contractor"));
 
@@ -180,7 +231,6 @@ public class VehicleActivity extends AppCompatActivity {
             textView_Type.setText(type.optString("Description"));
             textView_Category.setText(category.optString("Description"));
             String operator = response.isNull("Operator") ? "-" : response.optString("Operator");
-            displayTitle(response.optString("Plate"), response.optString("Contractor"));
             String make = response.isNull("Manufacturer") ? "" : response.optString("Manufacturer");
             String model = response.isNull("Model") ? "" : response.optString("Model");
             String year = response.isNull("ManufacturingYear") ? "" : response.optString("ManufacturingYear");
@@ -188,12 +238,11 @@ public class VehicleActivity extends AppCompatActivity {
 
             //String ownershipCard = response.isNull("OwnershipCard") ? "-" : response.optString("OwnershipCard");
             //textView_OwnershipCard.setText(ownershipCard);
-            if(!response.isNull("OwnershipCard")){
+            if (!response.isNull("OwnershipCard")) {
                 JSONObject ownershipCard = response.getJSONObject("OwnershipCard");
                 String ownershipCardNumber = ownershipCard.isNull("OwnershipCardNumber") ? "-" : ownershipCard.optString("OwnershipCardNumber");
                 textView_OwnershipCard.setText(ownershipCardNumber);
-            }
-            else{
+            } else {
                 textView_OwnershipCard.setText("-");
             }
 
@@ -317,10 +366,11 @@ public class VehicleActivity extends AppCompatActivity {
         t.setText("-");
         i.setImageResource(0);
     }
-    private void showDestinations(JSONArray array){
-       List<Destination> list = new ArrayList<>();
+
+    private void showDestinations(JSONArray array) {
+        List<Destination> list = new ArrayList<>();
         try {
-            list.add(new Destination("DESTINO",0));
+            list.add(new Destination("DESTINO", 0));
             for (int i = 0; i < array.length(); i++) {
                 list.add(new Destination(array.getJSONObject(i).getString("Description"), array.getJSONObject(i).getInt("VehicleLogDestinationId")));
             }
@@ -422,6 +472,7 @@ public class VehicleActivity extends AppCompatActivity {
             }
         }
     }
+
     private class QueryDestinationsTask extends AsyncTask<String, String, String> {
         HttpURLConnection urlConnection;
 
@@ -464,33 +515,35 @@ public class VehicleActivity extends AppCompatActivity {
             }
         }
     }
-public class Destination{
-    private int id;
-    private String desc;
 
-    public Destination(String desc,int id) {
-        this.id = id;
-        this.desc = desc;
-    }
+    public class Destination {
+        private int id;
+        private String desc;
 
-    public int getId() {
-        return id;
-    }
+        public Destination(String desc, int id) {
+            this.id = id;
+            this.desc = desc;
+        }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+        public int getId() {
+            return id;
+        }
 
-    public String getDesc() {
-        return desc;
-    }
+        public void setId(int id) {
+            this.id = id;
+        }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+        public String getDesc() {
+            return desc;
+        }
+
+        public void setDesc(String desc) {
+            this.desc = desc;
+        }
+
+        public String toString() {
+            return this.desc;
+        }
     }
-    public String toString() {
-        return this.desc;
-    }
-}
 
 }
