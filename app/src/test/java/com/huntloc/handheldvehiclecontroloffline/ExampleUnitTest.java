@@ -1,4 +1,4 @@
-package com.huntloc.handheldvehiclecontrol;
+package com.huntloc.handheldvehiclecontroloffline;
 
 import org.junit.Test;
 

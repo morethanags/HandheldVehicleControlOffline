@@ -1,7 +1,6 @@
-package com.huntloc.handheldvehiclecontrol;
+package com.huntloc.handheldvehiclecontroloffline;
 
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;

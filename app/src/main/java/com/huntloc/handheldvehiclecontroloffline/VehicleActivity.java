@@ -1,16 +1,11 @@
-package com.huntloc.handheldvehiclecontrol;
+package com.huntloc.handheldvehiclecontroloffline;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -21,17 +16,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.huntloc.handheldvehiclecontroloffline.model.SQLiteHelper;
+import com.huntloc.handheldvehiclecontroloffline.model.Vehicle;
+import com.huntloc.handheldvehiclecontroloffline.model.VehicleLog;
+
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,8 +33,7 @@ import java.util.List;
 public class VehicleActivity extends AppCompatActivity {
     SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
     String VEHICLEID, PLATE;
-    LogOperation logOperation = null;
-    private ImageView imageView_SecurityApproval, imageView_EnvironmentalApproval, imageView_SafetyApproval, imageView_Photo;
+    private ImageView imageView_SecurityApproval, imageView_EnvironmentalApproval, imageView_SafetyApproval;
     private TextView textView_Plate, textView_Contractor, textView_Type, textView_Category,
             textView_Maker_Model_Year, textView_OwnershipCard, textView_SecurityApproval,
             textView_EnvironmentalApproval, textView_SafetyApproval;
@@ -63,7 +53,7 @@ public class VehicleActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vehicle);
         View view = findViewById(android.R.id.content);
-        logOperation = new LogOperation();
+
         button_Entrance = (Button) view.findViewById(R.id.button_Entrance);
         button_Entrance.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,39 +112,47 @@ public class VehicleActivity extends AppCompatActivity {
         imageView_EnvironmentalApproval = (ImageView) view
                 .findViewById(R.id.imageView_EnvironmentalApproval);
 
-       /* textView_SafetyApproval = (TextView) view
+      textView_SafetyApproval = (TextView) view
                 .findViewById(R.id.textView_SafetyApproval);
         imageView_SafetyApproval = (ImageView) view
                 .findViewById(R.id.imageView_SafetyApproval);
-*/
-        imageView_Photo = (ImageView) view
-                .findViewById(R.id.imageView_Photo);
+
 
         destination = (Spinner) findViewById(R.id.spinner_destination);
 
         delivery = (LinearLayout) findViewById(R.id.delivery);
-        String serverURL = getResources().getString(R.string.service_url)
+
+
+        displayVehicle(response);
+
+        showDestinations();
+        /*String serverURL = getResources().getString(R.string.service_url)
                 + "/VehicleService/Retrieve/ByPlate/" + response;
         Log.d("url", serverURL);
         new QueryVehicleTask().execute(serverURL);
         String serverURL1 = getResources().getString(R.string.service_url)
                 + "/VehicleLogService/Destinations";
-        new QueryDestinationsTask().execute(serverURL1);
+        new QueryDestinationsTask().execute(serverURL1);*/
+
     }
 
     private void sendLogRequest(String GUID, String plate, int log) {
-        String serverURL = getResources().getString(
+        java.util.Date date = new java.util.Date();
+        VehicleLog vehicleLog = new VehicleLog(GUID, plate, log, date.getTime());
+
+        /*String serverURL = getResources().getString(
                 R.string.service_url)
                 + "/VehicleLogService/"
                 + GUID
                 + "/"
                 + plate
                 + "/"
-                + log;
+                + log;*/
         if (log == 0) {
             int d = ((Destination) destination.getSelectedItem()).getId();
             if (d != 0) {
-                serverURL = getResources().getString(
+                vehicleLog.setDestination(d);
+                /*serverURL = getResources().getString(
                         R.string.service_url)
                         + "/VehicleLogService/"
                         + GUID
@@ -162,13 +160,20 @@ public class VehicleActivity extends AppCompatActivity {
                         + plate
                         + "/"
                         + log + "/"
-                        + d;
+                        + d;*/
 
             }
-
         }
+        SQLiteHelper db = new SQLiteHelper(this.getApplicationContext());
+        db.insertVehicleLog(vehicleLog);
 
-        logOperation.execute(serverURL);
+        String response = "1 " + (log==0?"Salida":"Entrada") + " Registrada";
+        Toast.makeText(
+                VehicleActivity.this, response, Toast.LENGTH_LONG)
+                .show();
+
+        NavUtils.navigateUpFromSameTask(VehicleActivity.this);
+        //logOperation.execute(serverURL);
     }
 
     private void displayTitle(String plate, String type) {
@@ -179,13 +184,16 @@ public class VehicleActivity extends AppCompatActivity {
         }
     }
 
-    private void displayVehicle(String result) {
+    private void displayVehicle(String plate) {
         try {
-            JSONObject response = new JSONObject(result);
+            SQLiteHelper db = new SQLiteHelper(this.getApplicationContext());
+            Vehicle vehicle = db.selectVehicle(plate);
+
+            JSONObject response = new JSONObject(vehicle.getJSONString());
             Log.d("response", response.toString());
             VEHICLEID = response.optString("VehicleId");
             PLATE = response.optString("Plate");
-
+            Log.d("vehicle", VEHICLEID + " " + PLATE);
             JSONObject requestType = response.getJSONObject("VehicleRequestType");
             displayTitle(response.optString("Plate"), requestType.optString("Description"));
 
@@ -288,7 +296,7 @@ public class VehicleActivity extends AppCompatActivity {
                 imageView_EnvironmentalApproval.setColorFilter(ContextCompat.getColor(this, R.color.error));
             }
 
-           /* JSONObject safetyapproval = response.getJSONObject("SafetyApproval");
+           JSONObject safetyapproval = response.getJSONObject("SafetyApproval");
             if (safetyapproval.optBoolean("Validity") == true) {
                 textView_SafetyApproval.setText("VALID");
                 imageView_SafetyApproval.setImageResource(R.mipmap.ic_verified);
@@ -299,22 +307,11 @@ public class VehicleActivity extends AppCompatActivity {
                 textView_SafetyApproval.setText("NOT VALID");
                 imageView_SafetyApproval.setImageResource(R.mipmap.ic_error);
                 imageView_SafetyApproval.setColorFilter(ContextCompat.getColor(this, R.color.error));
-            }*/
+            }
             button_Entrance.setEnabled(enabled);
             button_Exit.setEnabled(enabled);
 
-            if (!response.isNull("Photo")) {
-                byte[] byteArray;
-                Bitmap bitmap;
-                byteArray = Base64
-                        .decode(response.optString("Photo"), 0);
-                bitmap = BitmapFactory.decodeByteArray(byteArray, 0,
-                        byteArray.length);
-                imageView_Photo.setImageBitmap(bitmap);
-            } else {
-                Log.d("Photo", "no image");
-                imageView_Photo.setImageResource(R.mipmap.ic_no_image);
-            }
+
         } catch (Exception je) {
             Log.d("JSONException", je.toString());
         }
@@ -367,7 +364,11 @@ public class VehicleActivity extends AppCompatActivity {
         i.setImageResource(0);
     }
 
-    private void showDestinations(JSONArray array) {
+    private void showDestinations() {
+        try{
+        SQLiteHelper db = new SQLiteHelper(this.getApplicationContext());
+        String destinations = db.selectVehicleLogDestination();
+        JSONArray array =   new JSONArray(destinations);
         List<Destination> list = new ArrayList<>();
         try {
             list.add(new Destination("DESTINO", 0));
@@ -378,64 +379,13 @@ public class VehicleActivity extends AppCompatActivity {
         }
         ArrayAdapter<Destination> adapter = new ArrayAdapter<Destination>(getApplicationContext(), android.R.layout.simple_spinner_item, list);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        ((Spinner) findViewById(R.id.spinner_destination)).setAdapter(adapter);
+        ((Spinner) findViewById(R.id.spinner_destination)).setAdapter(adapter);}
+        catch (Exception e){}
     }
 
-    private class LogOperation extends AsyncTask<String, String, String> {
-        HttpURLConnection urlConnection;
 
-        @SuppressWarnings("unchecked")
-        protected String doInBackground(String... args) {
-            StringBuilder result = new StringBuilder();
-            try {
-                URL url = new URL(args[0]);
-                Log.d("Log URL", url.toString());
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("POST");
-                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    result.append(line);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                urlConnection.disconnect();
-            }
-            return result.toString();
-        }
 
-        protected void onPostExecute(String result) {
-
-            try {
-                JSONObject jsonResponse = new JSONObject(result);
-
-                String log = jsonResponse.optString("log")
-                        .contains("Entry") ? "Entrada" : "Salida";
-                String response = jsonResponse.optString("records") + " " + log
-                        + " Registrada";
-
-                Toast.makeText(
-                        VehicleActivity.this, response, Toast.LENGTH_LONG)
-                        .show();
-
-                NavUtils.navigateUpFromSameTask(VehicleActivity.this);
-
-					/*
-                     * Intent intent = new
-					 * Intent(journalSectionFragmentWeakReference
-					 * .get().getActivity(), MainActivity.class);
-					 * journalSectionFragmentWeakReference
-					 * .get().getActivity().startActivity(intent);
-					 */
-            } catch (JSONException e) {
-            }
-
-        }
-    }
-
-    private class QueryVehicleTask extends AsyncTask<String, String, String> {
+    /*private class QueryVehicleTask extends AsyncTask<String, String, String> {
         HttpURLConnection urlConnection;
 
         @SuppressWarnings("unchecked")
@@ -515,7 +465,7 @@ public class VehicleActivity extends AppCompatActivity {
             }
         }
     }
-
+*/
     public class Destination {
         private int id;
         private String desc;
