@@ -32,7 +32,7 @@ import java.util.List;
 
 public class VehicleActivity extends AppCompatActivity {
     SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy"), format1 = new SimpleDateFormat("MMM dd yyyy");
-    String VEHICLEID, PLATE;
+    String VEHICLEID, PLATE, TYPE, CONTRACTOR;
     private ImageView imageView_SecurityApproval, imageView_EnvironmentalApproval, imageView_SafetyApproval;
     private TextView textView_Plate, textView_Contractor, textView_Type, textView_Category,
             textView_Maker_Model_Year, textView_OwnershipCard, textView_SecurityApproval,
@@ -48,7 +48,7 @@ public class VehicleActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Intent intent = getIntent();
-        String response = intent.getStringExtra(MainActivity.VEHICLE_MESSAGE);
+        String response = intent.getStringExtra(HandheldFragment.VEHICLE_MESSAGE);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vehicle);
@@ -58,14 +58,14 @@ public class VehicleActivity extends AppCompatActivity {
         button_Entrance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendLogRequest(VEHICLEID, PLATE, 1);
+            sendLogRequest(VEHICLEID, PLATE, 1, TYPE, CONTRACTOR);
             }
         });
         button_Exit = (Button) view.findViewById(R.id.button_Exit);
         button_Exit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendLogRequest(VEHICLEID, PLATE, 0);
+            sendLogRequest(VEHICLEID, PLATE, 0, TYPE, CONTRACTOR);
             }
         });
         textView_Plate = (TextView) view
@@ -136,9 +136,9 @@ public class VehicleActivity extends AppCompatActivity {
 
     }
 
-    private void sendLogRequest(String GUID, String plate, int log) {
+    private void sendLogRequest(String GUID, String plate, int log, String type, String contractor) {
         java.util.Date date = new java.util.Date();
-        VehicleLog vehicleLog = new VehicleLog(GUID, plate, log, date.getTime());
+        VehicleLog vehicleLog = new VehicleLog(GUID, plate, log, date.getTime(), type, contractor);
 
         /*String serverURL = getResources().getString(
                 R.string.service_url)
@@ -193,9 +193,12 @@ public class VehicleActivity extends AppCompatActivity {
             Log.d("response", response.toString());
             VEHICLEID = response.optString("VehicleId");
             PLATE = response.optString("Plate");
+            CONTRACTOR = response.optString("Contractor");
+
             Log.d("vehicle", VEHICLEID + " " + PLATE);
             JSONObject requestType = response.getJSONObject("VehicleRequestType");
-            displayTitle(response.optString("Plate"), requestType.optString("Description"));
+            TYPE = requestType.optString("Description");
+            displayTitle(PLATE,TYPE);
 
             if (requestType.optInt("VehicleRequestTypeId") == 0) {
                 delivery.setVisibility(View.VISIBLE);

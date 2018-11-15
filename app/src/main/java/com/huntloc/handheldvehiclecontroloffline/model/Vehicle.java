@@ -24,7 +24,6 @@ public class Vehicle {
     private String JSONString;
 
 
-
     public String getPlate() {
         return Plate;
     }

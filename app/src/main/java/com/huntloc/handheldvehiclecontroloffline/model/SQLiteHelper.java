@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Debug;
 import android.util.Log;
 
 import java.util.LinkedList;
@@ -35,7 +36,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 "Plate TEXT, "+
                 "Log INTEGER, " +
                 "Time TEXT, " +
-                "Destination TEXT " +
+                "Destination TEXT," +
+                "Type TEXT, " +
+                "Contractor TEXT"+
                 ")");
     }
     @Override
@@ -85,6 +88,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         values.put("Time", vehicleLog.getTime());
         values.put("Destination", vehicleLog.getDestination());
 
+        values.put("Type", vehicleLog.getType());
+        values.put("Contractor", vehicleLog.getContractor());
+        Log.d("insertVehicleLog", vehicleLog.toString());
         db.insert("VehicleLog", null, values);
         db.close();
     }
@@ -96,8 +102,25 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         VehicleLog record = null;
         if (cursor.moveToFirst()) {
             do {
-                record = new VehicleLog(cursor.getString(0),cursor.getString(1),cursor.getInt(2),Long.parseLong(cursor.getString(3)),cursor.getInt(4));
+                record = new VehicleLog(cursor.getString(0),cursor.getString(1),cursor.getInt(2),Long.parseLong(cursor.getString(3)), cursor.getInt(4));
                 records.add(record);
+            } while (cursor.moveToNext());
+            Log.d("getAllRecords()", records.size()+" Records");
+        }
+        db.close();
+        return records;
+    }
+    public List<VehicleLog> getLog(String log) {
+        List<VehicleLog> records = new LinkedList<VehicleLog>();
+        String query = "SELECT  * FROM VehicleLog Where Log = ? order by Time desc";
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, new String [] {log});
+        VehicleLog record = null;
+        if (cursor.moveToFirst()) {
+            do {
+                record = new VehicleLog(cursor.getString(0),cursor.getString(1),cursor.getInt(2),Long.parseLong(cursor.getString(3)),cursor.getString(5),cursor.getString(6));
+                records.add(record);
+                Log.d("records", record.toString());
             } while (cursor.moveToNext());
             Log.d("getAllRecords()", records.size()+" Records");
         }

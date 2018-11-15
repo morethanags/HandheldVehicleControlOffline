@@ -9,8 +9,14 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -39,13 +45,16 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        HandheldFragment.OnHandheldFragmentInteractionListener,
+        EntranceFragment.OnEntranceFragmentInteractionListener,
+        ExitFragment.OnExitFragmentInteractionListener {
 
-    public static final String VEHICLE_MESSAGE = "com.huntloc.handheldvehiclecontrol.VEHICLE";
+
     private static long back_pressed;
-    private static EditText editText_Plate;
     public static final String PREFS_NAME = "HandheldVehicleOfflinePrefsFile";
-    private Button button_Ckeck;
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private ViewPager mViewPager;
     ProgressDialog progress;
     TextView textView_lastupdate_date;
 
@@ -56,41 +65,19 @@ public class MainActivity extends AppCompatActivity {
 
         View view = findViewById(android.R.id.content);
 
-        editText_Plate = (EditText) view
-                .findViewById(R.id.editText_Plate);
-        editText_Plate.setOnKeyListener(new View.OnKeyListener() {
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if ((event.getAction() == KeyEvent.ACTION_DOWN)
-                        && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                    if (editText_Plate.getText().toString().isEmpty()) {
-                        Toast.makeText(MainActivity.this,
-                                "Enter a vehicle plate i.e. ABC123",
-                                Toast.LENGTH_SHORT).show();
-                    } else {
-                        //sendRequest();
-                        findVehicle();
-                    }
-                    return true;
-                }
-                return false;
-            }
-        });
+//View view = findViewById(android.R.id.content);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        button_Ckeck = (Button) view.findViewById(R.id.button_Check);
-        button_Ckeck.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (editText_Plate.getText().toString().isEmpty()) {
-                    Toast.makeText(MainActivity.this,
-                            "Enter a vehicle plate i.e. ABC123",
-                            Toast.LENGTH_SHORT).show();
-                } else {
-                    //sendRequest();
-                    findVehicle();
-                    hideKeyboard();
-                }
-            }
-        });
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mViewPager.setOffscreenPageLimit(2);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(mViewPager);
         Log.d("MainActivity Intent", getIntent().getAction());
         progress = new ProgressDialog(this);
         progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -98,11 +85,11 @@ public class MainActivity extends AppCompatActivity {
         progress.setProgressNumberFormat(null);
         progress.setProgressPercentFormat(null);
         progress.setCanceledOnTouchOutside(false);
+
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
-        textView_lastupdate_date = (TextView) findViewById(R.id.textView_lastupdate_date);
+        textView_lastupdate_date = (TextView) view.findViewById(R.id.textView_lastupdate_date);
         textView_lastupdate_date.setText("Última actualización: " + getSharedPreferences(PREFS_NAME, 0).getString("lastupdate", "No se ha sincronizado"));
-
         //si viene de la notificacion...
         /*if(getIntent().getExtras()!=null && getIntent().getExtras().getString("plate")!= null){
             editText_Plate.setText(getIntent().getExtras().getString("plate"));
@@ -165,32 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void hideKeyboard() {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
-    }
-private void findVehicle(){
-    SQLiteHelper db = new SQLiteHelper(MainActivity.this.getApplicationContext());
-    String plate = editText_Plate.getText().toString();
-    Vehicle vehicle = db.selectVehicle(plate);
-    if (vehicle!=null) {
-        displayVehicle(plate);
-    } else {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-        alertDialogBuilder.setTitle("Vehicle Control");
-        alertDialogBuilder.setMessage("Vehicle not found!");
-        alertDialogBuilder.setCancelable(false);
-        alertDialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });
-        alertDialogBuilder.create().show();
-    }
-}
+
     private void sendRequest() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo[] netInfo = connectivityManager.getAllNetworkInfo();
@@ -257,13 +219,19 @@ private void findVehicle(){
         }
     }
 
-    protected void displayVehicle(String plate) {
-        Intent intent = new Intent(this,
-                VehicleActivity.class);
-        intent.putExtra(VEHICLE_MESSAGE, plate);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        startActivity(intent);
-        //editText_Plate.setText("");
+    @Override
+    public void onHandheldFragmentInteraction() {
+
+    }
+
+    @Override
+    public void onEntranceFragmentInteraction() {
+
+    }
+
+    @Override
+    public void onExitFragmentInteraction() {
+
     }
 
     @Override
@@ -440,4 +408,55 @@ private void findVehicle(){
             }
         }
     }
+    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+        private HandheldFragment handheldFragment;
+        private EntranceFragment entranceFragment;
+        private ExitFragment exitFragment;
+
+        public SectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            Fragment fragment = null;
+            if (position == 0) {
+                if (handheldFragment == null) {
+                    handheldFragment = new HandheldFragment();
+                }
+                fragment = handheldFragment;
+            } else if (position == 1) {
+                if (entranceFragment == null) {
+                    entranceFragment = new EntranceFragment();
+                }
+                fragment = entranceFragment;
+            } else if (position == 2) {
+                if (exitFragment == null) {
+                    exitFragment = new ExitFragment();
+                }
+                fragment = exitFragment;
+            }
+            return fragment;
+        }
+
+        @Override
+        public int getCount() {
+            // Show 3 total pages.
+            return 3;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case 0:
+                    return "Handheld";
+                case 1:
+                    return "Entrance";
+                case 2:
+                    return "Exit";
+            }
+            return null;
+        }
+    }
+
 }

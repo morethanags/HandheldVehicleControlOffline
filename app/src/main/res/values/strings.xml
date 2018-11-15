@@ -35,4 +35,7 @@
     <string name="arrival">Arrival Date: </string>
     <string name="days">Days at site: </string>
     <string name="action_update">Actualizar Información</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

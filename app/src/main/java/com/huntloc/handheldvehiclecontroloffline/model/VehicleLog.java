@@ -10,7 +10,8 @@ public class VehicleLog {
     private int log;
     private long time;
     private int destination;
-
+private String type;
+    private String contractor;
     public VehicleLog(String id, String plate, int log, long time) {
         this.id = id;
         this.plate = plate;
@@ -23,6 +24,14 @@ public class VehicleLog {
         this.log = log;
         this.time = time;
         this.destination = destination;
+    }
+    public VehicleLog(String id, String plate, int log, long time, String type, String contactor) {
+        this.id = id;
+        this.plate = plate;
+        this.log = log;
+        this.time = time;
+        this.type = type;
+        this.contractor = contactor;
     }
     public String getId() {
         return id;
@@ -62,5 +71,31 @@ public class VehicleLog {
 
     public void setDestination(int destination) {
         this.destination = destination;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getContractor() {
+        return contractor;
+    }
+
+    @Override
+    public String toString() {
+        return "VehicleLog{" +
+                "plate='" + plate + '\'' +
+                ", time=" + time +
+                ", type='" + type + '\'' +
+                ", contractor='" + contractor + '\'' +
+                '}';
+    }
+
+    public void setContractor(String contractor) {
+        this.contractor = contractor;
     }
 }
